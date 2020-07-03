@@ -17,6 +17,7 @@ float vertices[] = {
 unsigned int VBO;
 unsigned int vertexShader;
 unsigned int fragmentShader;
+unsigned int staderProgram;
 
 const char* vertexShaderStr = "#version 330 core\n"
 "layout(location = 0) in vec3 aPos;\n"
@@ -68,6 +69,7 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		//顶点缓冲对象
 		glGenBuffers(1, &VBO);
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
@@ -90,6 +92,25 @@ int main()
 		fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 		glShaderSource(fragmentShader, 1, &fragmentShaderStr, NULL);
 		glCompileShader(fragmentShader);
+
+		//着色器程序
+		shaderProgram = glCreateProgram();
+		glAttachShader(shaderProgram, vertexShader);
+		glAttachShader(shaderProgram, fragmentShader);
+		glLinkProgram(shaderProgram);
+
+		glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+		if (success)
+		{
+			glGetShaderInfoLog(shaderProgram, 512, NULL, infoLog);
+		}
+
+		glUseProgram(shaderProgram);
+
+		glDeleteShader(vertexShader);
+		glDeleteShader(fragmentShader);
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	}
 
 	glfwTerminate();
