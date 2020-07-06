@@ -8,30 +8,44 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
-float vertices[] = {
-	-0.5f, -0.5f, 0.0f,
-	0.5f, -0.5f, 0.0f,
-	0.0f, 0.5f, 0.5f
+float firstVertices[] = {
+	0.3f, 0.5f, 0.0f,
+	-0.2f, 0.0f, 0.0f,
+	0.3f, -0.5f, 0.0f,
 };
 
+float secondVertices[] = {
+	-0.3f, 0.5f, 0.0f,
+	0.2f, 0.0f, 0.0f,
+	-0.3f, -0.5f, 0.0f,
+};
+
+unsigned int indices[] = {
+	0, 1, 2,
+	3, 4, 2
+};
+
+unsigned int VAO;
 unsigned int VBO;
 unsigned int vertexShader;
 unsigned int fragmentShader;
-unsigned int staderProgram;
+unsigned int shaderProgram;
+unsigned int EBO;
 
 const char* vertexShaderStr = "#version 330 core\n"
 "layout(location = 0) in vec3 aPos;\n"
 "void main()\n"
 "{\n"
-"	gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+"	gl_Position = vec4(aPos, 1.0f);\n"
 "}\0";
 
-const char* fragmentShaderStr = "#version 330 core\n"
+const char* fragmentShaderStrA = "#version 330 core\n"
 "out vec4 FragColor;\n"
+"uniform vec4 outColor;\n"
 "void main()\n"
 "{\n"
-"	FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);"
-"}\n";
+"	FragColor = outColor;\n"
+"}\0";
 
 
 
@@ -50,6 +64,7 @@ int main()
 		return -1;
 	}
 	glfwMakeContextCurrent(window);
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
@@ -58,59 +73,80 @@ int main()
 	}
 	glViewport(0, 0, 800, 600);
 
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+	//创建顶点着色器
+	vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vertexShader, 1, &vertexShaderStr, NULL);
+	glCompileShader(vertexShader);
+
+	//创建
+	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragmentShader, 1, &fragmentShaderStrA, NULL);
+	glCompileShader(fragmentShader);
+
+	int success;
+	char infoLog[512];
+	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+	if (!success)
+	{
+		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+	}
+	//着色器程序
+	shaderProgram = glCreateProgram();
+	glAttachShader(shaderProgram, vertexShader);
+	glAttachShader(shaderProgram, fragmentShader);
+	glLinkProgram(shaderProgram);
+	//shaderProgram[1] = glCreateProgram();
+	//glAttachShader(shaderProgram[1], vertexShader);
+	//glAttachShader(shaderProgram[1], fragmentShader[1]);
+	//glLinkProgram(shaderProgram[1]);
+
+	//链接后就可以删除
+	glDeleteShader(vertexShader);
+	glDeleteShader(fragmentShader);
+	//glDeleteShader(fragmentShader[1]);
+
+	//激活程序对象
+	glUseProgram(shaderProgram);
+	//glUseProgram(shaderProgram[1]);
+
+
+	glGenVertexArrays(2, &VAO);
+	glGenBuffers(2, &VBO);
+
+	glBindVertexArray(VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(firstVertices), firstVertices, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	//glBindVertexArray(VAO[1]);
+	//glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(secondVertices), secondVertices, GL_STATIC_DRAW);
+	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	//glEnableVertexAttribArray(0);
+
+
+
 
 	while (!glfwWindowShouldClose(window))
 	{
 		processInput(window);
-		glfwSwapBuffers(window);
-		glfwPollEvents();
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		//顶点缓冲对象
-		glGenBuffers(1, &VBO);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-		//创建顶点着色器
-		vertexShader = glCreateShader(GL_VERTEX_SHADER);
-		glShaderSource(vertexShader, 1, &vertexShaderStr, NULL);
-		glCompileShader(vertexShader);
-
-		int success;
-		char infoLog[512];
-		glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-		if(!success)
-		{
-			glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-			std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-		}
-
-		//创建
-		fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(fragmentShader, 1, &fragmentShaderStr, NULL);
-		glCompileShader(fragmentShader);
-
-		//着色器程序
-		shaderProgram = glCreateProgram();
-		glAttachShader(shaderProgram, vertexShader);
-		glAttachShader(shaderProgram, fragmentShader);
-		glLinkProgram(shaderProgram);
-
-		glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-		if (success)
-		{
-			glGetShaderInfoLog(shaderProgram, 512, NULL, infoLog);
-		}
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 		glUseProgram(shaderProgram);
 
-		glDeleteShader(vertexShader);
-		glDeleteShader(fragmentShader);
+		glBindVertexArray(VAO);
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+
+		glfwSwapBuffers(window);
+		glfwPollEvents();
 	}
 
 	glfwTerminate();

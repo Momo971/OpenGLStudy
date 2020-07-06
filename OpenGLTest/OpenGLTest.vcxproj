@@ -73,8 +73,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
-    <LibraryPath>C:\Users\xuzihao\source\repos\OpenGLTest\Libs;$(LibraryPath)</LibraryPath>
-    <IncludePath>C:\Users\xuzihao\source\repos\OpenGLTest\Include;C:\Users\xuzihao\source\repos\OpenGLTest\Libs;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\xuzihao\source\repos\Momo971\OpenGLStudy\Libs;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\xuzihao\source\repos\Momo971\OpenGLStudy\Libs;C:\Users\xuzihao\source\repos\Momo971\OpenGLStudy\Include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
